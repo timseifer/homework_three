@@ -48,6 +48,7 @@ def minus_log_likelihood(filename):
 		loglik+=np.log10(bystander_model(person[1], person[0], .7))
 	loglik = -loglik
 	print(loglik)
+	return loglik
 
 def main():
 	#print("Testing Falsifying Data")
