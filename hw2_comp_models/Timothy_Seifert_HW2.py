@@ -3,31 +3,25 @@
 # JP -> Computational Models of Cog Sci
 
 import csv
-import scipy
+from scipy.special import expit
 import math
+import numpy as np
 
-def sigmoid(x):
-  return 1 / (1 + math.exp(-x))
 # The naive model for a bystander given as an example
 # def bystander_model(N, Temperature, Altruism):
 # 	return N == 1 and Temperature > 6 and Altruism > 0.5
 
 # My model for the bystander effect
 def bystander_model(N, Temperature, Altruism):
-	if(N == 0 or Temperature == 0):
-		return False
-	# have to presume a bad input like this is possible
-	if(Temperature > 120 or Altruism > 1 or Altruism < 0 or N < 0):
-		return False
-
 	# calculate the probability decrease
-	temp_weighted =((1/int(Temperature))*12)
-	bystander_weighted = (1-(1/int(N)))
+	temp_weighted =(1/int(Temperature**2 + 1))
+	bystander_weighted = (1/int(N+1))
 
-	probability = ((1 - temp_weighted - bystander_weighted)+(.5*Altruism))
-	sigmoid_var =  sigmoid(probability)
+	probability = (1 - temp_weighted - bystander_weighted)+(.5*Altruism)
+	sigmoid_var =  expit(probability)
 	# less than 50% probability and we will say the person was not saved
-	print(sigmoid_var)
+	print(sigmoid_var, "sig")
+	return max(sigmoid_var,.001)
 
 # Utilizes the total rows as the error metric
 def error_metric(filename):
@@ -46,11 +40,22 @@ def error_metric(filename):
 	# 			error_val += 1
 	# return error_val
 
+def minus_log_likelihood(filename): 
+	data =  np.genfromtxt(filename, delimiter=',', skip_header=True)
+	loglik = 0
+	for person in data:
+		#print(bystander_model(person[1], person[0], .7), "bm")
+		loglik+=np.log10(bystander_model(person[1], person[0], .7))
+	loglik = -loglik
+	print(loglik)
+
 def main():
-	print("Testing Falsifying Data")
-	print(error_metric('/Users/timseifert/Desktop/CompModels/hw2_comp_models/Timothy_Seifert_falsifying_data.csv'))
-	print("Testing Supporting Data")
-	print(error_metric('/Users/timseifert/Desktop/CompModels/hw2_comp_models/Timothy_Seifert_supporting_data.csv'))
+	#print("Testing Falsifying Data")
+	minus_log_likelihood('Timothy_Seifert_falsifying_data.csv')
+	#print("Testing Supporting Data")
+	#print(error_metric('Timothy_Seifert_supporting_data.csv'))
+	minus_log_likelihood('Timothy_Seifert_supporting_data.csv')
+	minus_log_likelihood('empirical.csv')
 
 if __name__ == "__main__":
     main()
